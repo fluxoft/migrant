@@ -1,39 +1,40 @@
 #!/usr/bin/env php
 <?php
 
-/*
- * Attempt to load a composer autoload file, either by searching as if this file is
- * included in the composer file structure (/vendor/fluxoft/migrant/bin) or as if this
- * file is being run as part of a stand-alone installation.
+/**
+ * Finds and requires the Composer autoloader if available.
  */
+function loadAutoloader() {
+	// Check the vendor autoload paths at different levels
+	$autoloadPaths = [
+		__DIR__ . '/vendor/autoload.php',
+		__DIR__ . '/../vendor/autoload.php',
+		__DIR__ . '/../../vendor/autoload.php',
+		__DIR__ . '/../../../vendor/autoload.php',
+		__DIR__ . '/../../../../vendor/autoload.php'
+	];
 
-$autoLoader = false;
-
-$files = [
-	__DIR__ . '/../autoload.php', // composer dependency (called from /vendor/bin dir)
-	__DIR__ . '/../../../autoload.php', // composer dependency (called from /vendor/fluxoft/migrant/bin - not recommended)
-	__DIR__ . '/../vendor/autoload.php', // stand-alone package (assuming one level deep, e.g. /migrations)
-	__DIR__ . '/../vendor/autoload.php' // stand-alone package (assuming two levels deep, e.g. /deploy/db)
-];
-
-foreach ($files as $file) {
-	if (is_file($file)) {
-		$autoLoader = true;
-		require_once($file);
-		break;
+	foreach ($autoloadPaths as $path) {
+		if (file_exists($path)) {
+			require_once $path;
+			return true;
+		}
 	}
+	return false;
 }
 
-if (!$autoLoader) {
-	die("\nMigrant must be installed as a Composer package.\n\n");
+// Attempt to load the autoloader
+if (!loadAutoloader()) {
+	die("\nMigrant must be installed as a Composer package within a project.\n\n");
 }
 
+// Proceed with the rest of the script
 $workingFolder = getcwd();
 
 try {
-   $arguments = $argv;
-   array_shift($arguments); // the first argument is always the name of the script
-   $migrantWorker = new \Fluxoft\Migrant\Worker();
+	$arguments = $argv;
+	array_shift($arguments); // the first argument is always the name of the script
+	$migrantWorker = new \Fluxoft\Migrant\Worker();
 	$migrantWorker->Work($arguments, $workingFolder);
 } catch (\Exception $e) {
 	\Fluxoft\Migrant\Printer::PrintException($e);

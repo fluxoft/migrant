@@ -19,5 +19,9 @@
 	"autoload": {
 		"psr-4": { "Fluxoft\\Migrant\\": "src/" }
 	},
-	"bin": ["bin/migrant"]
+	"bin": ["bin/migrant"],
+	"scripts": {
+		"post-install-cmd": ["Fluxoft\\Migrant\\Setup::runCopy"],
+		"post-update-cmd": ["Fluxoft\\Migrant\\Setup::runCopy"]
+	}
 }
