@@ -95,7 +95,6 @@ class Foreman {
 			default:
 				// no valid command found:
 				throw new CommandException('No valid command was found.');
-				break;
 		}
 		return $command;
 	}
