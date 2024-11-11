@@ -30,7 +30,7 @@ jobs:
           paths:
             - ./vendor
       - run:
-          name: "PHP CodeSniffere"
+          name: "PHP CodeSniffer"
           command: "vendor/bin/phpcs --standard=ruleset.xml src/ tests/"
       - run:
           name: "PHPUnit"
