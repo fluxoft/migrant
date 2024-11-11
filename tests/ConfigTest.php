@@ -2,19 +2,20 @@
 
 namespace Fluxoft\Migrant;
 
-class ConfigTest extends \PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+
+class ConfigTest extends TestCase {
 	protected $configMock;
 
-	protected function setup() {
+	protected function setup(): void {
 		$this->configMock = $this->getMockBuilder('\Fluxoft\Migrant\Config')
 			->disableOriginalConstructor()
 			->getMock();
 	}
 
-	protected function teardown() {}
+	protected function teardown(): void {}
 
 	public function testFooNotEqualBar() {
 		$this->assertNotEquals('foo', 'bar');
 	}
 }
- 
