@@ -52,7 +52,7 @@ class Up implements CommandInterface {
 					} catch (EnvironmentException $e) {
 						$message .= "FAILED!\n".$e->getMessage()."\n";
 						$message .= "\nStopping all further migrations.\n";
-						$success = false;
+						$success  = false;
 						break;
 					}
 				} else {

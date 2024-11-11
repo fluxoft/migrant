@@ -19,4 +19,3 @@ class ConfigTest extends TestCase {
 		$this->assertNotEquals('foo', 'bar');
 	}
 }
- 
