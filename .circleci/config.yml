@@ -21,12 +21,12 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "composer.lock" }}
+          key: dependency-cache-{{ checksum "composer.json" }}
       - run:
           name: "composer install"
           command: "composer install --prefer-dist --no-interaction"
       - save_cache:
-          key: dependency-cache-{{ checksum "composer.lock" }}
+          key: dependency-cache-{{ checksum "composer.json" }}
           paths:
             - ./vendor
       - run:
