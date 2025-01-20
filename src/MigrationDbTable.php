@@ -2,31 +2,29 @@
 
 namespace Fluxoft\Migrant;
 
-class MigrationDbTable {
-	private $connection;
-	private $tableName;
+use PDO;
+use PDOException;
 
-	public function __construct(\PDO $connection, $tableName = 'migrant_log') {
+class MigrationDbTable {
+	private readonly PDO $connection;
+	private readonly string $tableName;
+
+	public function __construct(PDO $connection, string $tableName = 'migrant_log') {
 		$this->connection = $connection;
-		$this->tableName  = $tableName;
+		$this->tableName = $tableName;
 		$this->init();
 	}
 
-	public function GetExecutedMigrations() {
-		$sql  = 'SELECT revision, migration_start, migration_end FROM '.$this->tableName . ' ORDER BY revision';
+	public function GetExecutedMigrations(): array {
+		$sql = "SELECT revision, migration_start, migration_end FROM {$this->tableName} ORDER BY revision";
 		$stmt = $this->connection->prepare($sql);
 		$stmt->execute();
-		$data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-		$hash = [];
-		foreach ($data as $row) {
-			$hash[$row['revision']] = $row;
-		}
-		return $hash;
+		return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 	}
 
-	public function AddMigration($revision, \DateTime $startTime, \DateTime $endTime) {
-		$sql  = 'INSERT INTO '.$this->tableName.' (revision, migration_start, migration_end)
-		         VALUES (:revision, :migrationStart, :migrationEnd)';
+	public function AddMigration(int $revision, \DateTime $startTime, \DateTime $endTime): void {
+		$sql = "INSERT INTO {$this->tableName} (revision, migration_start, migration_end)
+		        VALUES (:revision, :migrationStart, :migrationEnd)";
 		$stmt = $this->connection->prepare($sql);
 		$stmt->execute([
 			'revision' => $revision,
@@ -35,32 +33,41 @@ class MigrationDbTable {
 		]);
 	}
 
-	public function RemoveMigration($revision) {
-		$sql  = 'DELETE FROM '.$this->tableName.' WHERE revision = :revision';
+	public function RemoveMigration(int $revision): void {
+		$sql = "DELETE FROM {$this->tableName} WHERE revision = :revision";
 		$stmt = $this->connection->prepare($sql);
-		$stmt->execute([
-			'revision' => $revision
-		]);
+		$stmt->execute(['revision' => $revision]);
 	}
 
-	private function init() {
-		$tableExists = true;
-		$result      = false;
+	protected function init(): void {
+		if (!$this->doesTableExist()) {
+			$this->createMigrationTable();
+		}
+	}
+
+	protected function doesTableExist(): bool {
 		try {
-			$result = $this->connection->query('SELECT 1 FROM ' . $this->tableName . ' LIMIT 1');
-		} catch (\PDOException $e) {
-			$tableExists = false;
+			$this->connection->query("SELECT 1 FROM {$this->tableName} LIMIT 1");
+			return true;
+		} catch (PDOException $e) {
+			return false;
 		}
-		if ($result === false) {
-			$tableExists = false;
-		}
-		if (!$tableExists) {
-			$sql = 'CREATE TABLE ' . $this->tableName . '(
-				revision BIGINT NOT NULL PRIMARY KEY,
-				migration_start DATETIME NOT NULL,
-				migration_end DATETIME NOT NULL
-				)';
-			$this->connection->exec($sql);
-		}
+	}
+
+	protected function createMigrationTable(): void {
+		$dbType = $this->connection->getAttribute(PDO::ATTR_DRIVER_NAME);
+		$datetimeType = match ($dbType) {
+			'pgsql' => 'TIMESTAMP',
+			'mysql' => 'DATETIME',
+			'sqlite' => 'TEXT',
+			default => 'TIMESTAMP',
+		};
+
+		$sql = "CREATE TABLE {$this->tableName} (
+			revision BIGINT NOT NULL PRIMARY KEY,
+			migration_start {$datetimeType} NOT NULL,
+			migration_end {$datetimeType} NOT NULL
+		)";
+		$this->connection->exec($sql);
 	}
 }
