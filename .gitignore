@@ -1,6 +1,6 @@
-/vendor/
-/.idea/
-/composer.lock
-/build/
-/.phpunit.result.cache
-/migrant
+vendor/
+.idea/
+composer.lock
+build/
+.phpunit.result.cache
+migrant
