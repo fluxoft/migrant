@@ -41,7 +41,7 @@ class MigrationDbTable {
 	}
 
 	public function RemoveMigration(int $revision): void {
-		$sql = "DELETE FROM {$this->tableName} WHERE revision = :revision";
+		$sql  = "DELETE FROM {$this->tableName} WHERE revision = :revision";
 		$stmt = $this->connection->prepare($sql);
 		$stmt->execute(['revision' => $revision]);
 	}
@@ -62,7 +62,7 @@ class MigrationDbTable {
 	}
 
 	protected function createMigrationTable(): void {
-		$dbType = $this->connection->getAttribute(PDO::ATTR_DRIVER_NAME);
+		$dbType       = $this->connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 		$datetimeType = match ($dbType) {
 			'pgsql' => 'TIMESTAMP',
 			'mysql' => 'DATETIME',
