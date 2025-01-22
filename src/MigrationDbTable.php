@@ -11,19 +11,26 @@ class MigrationDbTable {
 
 	public function __construct(PDO $connection, string $tableName = 'migrant_log') {
 		$this->connection = $connection;
-		$this->tableName = $tableName;
+		$this->tableName  = $tableName;
 		$this->init();
 	}
 
 	public function GetExecutedMigrations(): array {
-		$sql = "SELECT revision, migration_start, migration_end FROM {$this->tableName} ORDER BY revision";
+		$sql  = "SELECT revision, migration_start, migration_end FROM {$this->tableName} ORDER BY revision";
 		$stmt = $this->connection->prepare($sql);
 		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+		$data = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+		$hash = [];
+		foreach ($data as $row) {
+			$hash[$row['revision']] = $row;
+		}
+
+		return $hash;
 	}
 
 	public function AddMigration(int $revision, \DateTime $startTime, \DateTime $endTime): void {
-		$sql = "INSERT INTO {$this->tableName} (revision, migration_start, migration_end)
+		$sql  = "INSERT INTO {$this->tableName} (revision, migration_start, migration_end)
 		        VALUES (:revision, :migrationStart, :migrationEnd)";
 		$stmt = $this->connection->prepare($sql);
 		$stmt->execute([
